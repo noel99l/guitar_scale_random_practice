@@ -159,6 +159,33 @@
       margin-top: 12px;
     }
 
+    .scale-preset {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .scale-preset label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #93c5fd;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .scale-preset select {
+      background: rgba(255,255,255,0.08);
+      color: #f9fafb;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
     .toggle-section {
       margin-bottom: 16px;
     }
@@ -190,6 +217,50 @@
       background: #60a5fa;
       color: #0f172a;
       border-color: #60a5fa;
+    }
+
+    .degree-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .degree-grid-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      padding: 10px 4px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+      min-height: 72px;
+    }
+
+    .degree-grid-cell:last-child {
+      border-right: none;
+    }
+
+    .degree-grid-cell span {
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.3;
+      word-break: break-all;
+    }
+
+    .degree-grid-cell input[type=checkbox] {
+      width: 16px;
+      height: 16px;
+      accent-color: #60a5fa;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .degree-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
     }
 
     .hint {
@@ -237,6 +308,48 @@
       padding: 8px 10px;
       background: rgba(255, 255, 255, 0.06);
       border-radius: 10px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .history-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-item-label {
+      font-size: 9px;
+      color: #93c5fd;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .history-item-value {
+      font-size: 11px;
+      color: #f9fafb;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .history-time {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      color: #60a5fa;
+      white-space: nowrap;
+      padding-left: 4px;
     }
 
     .empty {
@@ -271,7 +384,7 @@
 
     <section class="cards" aria-live="polite">
       <div class="card">
-        <div class="label">スケール</div>
+        <div class="label">ルート</div>
         <div id="scale" class="value">-</div>
       </div>
       <div class="card degree">
@@ -299,20 +412,43 @@
       <summary>設定</summary>
       <div class="settings-inner">
         <div class="toggle-section">
-          <div class="toggle-section-label">スケール</div>
-          <div class="toggle-group" id="scaleToggle"></div>
+          <div class="toggle-section-label">ルート</div>
+          <div class="degree-grid" id="scaleGrid"></div>
         </div>
         <div class="toggle-section">
           <div class="toggle-section-label">弦</div>
-          <div class="toggle-group" id="stringToggle"></div>
+          <div class="degree-grid" id="stringGrid"></div>
         </div>
         <div class="toggle-section">
           <div class="toggle-section-label">度数</div>
-          <div class="toggle-group" id="degreeToggle"></div>
+          <div class="scale-preset">
+            <label>スケール：</label>
+            <select id="scalePreset" onchange="applyScalePreset(this.value)">
+              <option value="">―― プリセット ――</option>
+              <option value="ionian">Ionian (Major)</option>
+              <option value="dorian">Dorian</option>
+              <option value="phrygian">Phrygian</option>
+              <option value="lydian">Lydian</option>
+              <option value="mixolydian">Mixolydian</option>
+              <option value="aeolian">Aeolian (Natural Minor)</option>
+              <option value="locrian">Locrian</option>
+              <option value="majorPenta">Major Pentatonic</option>
+              <option value="minorPenta">Minor Pentatonic</option>
+              <option value="harmonicMinor">Harmonic Minor</option>
+              <option value="melodicMinor">Melodic Minor</option>
+              <option value="altered">Altered</option>
+              <option value="wholeTone">Whole Tone</option>
+              <option value="comboDimi">Combination Diminished</option>
+              <option value="diminished">Diminished</option>
+              <option value="lydianb7">Lydian b7</option>
+              <option value="chromatic">Chromatic</option>
+            </select>
+          </div>
+          <div class="degree-grid" id="degreeGrid"></div>
         </div>
         <div class="toggle-section">
           <div class="toggle-section-label">指</div>
-          <div class="toggle-group" id="fingerToggle"></div>
+          <div class="degree-grid" id="fingerGrid"></div>
         </div>
       </div>
     </details>
@@ -328,7 +464,7 @@
 
   <script>
     const groups = {
-      scale:  { all: ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"], active: new Set(["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]) },
+      scale:  { all: ["C","C#/D♭","D","D#/E♭","E","F","F#/G♭","G","G#/A♭","A","A#/B♭","B"], active: new Set(["C","C#/D♭","D","D#/E♭","E","F","F#/G♭","G","G#/A♭","A","A#/B♭","B"]) },
       string: { all: ["1弦","2弦","3弦","4弦","5弦","6弦","7弦"], active: new Set(["1弦","2弦","3弦","4弦","5弦","6弦"]) },
       degree: { all: ["Root","♭9th","9th","m3rd(#9th)","M3rd","4th(11th)","#11th(♭5)","5th","♭13th(#5th)","6th(13th)","m7th","M7th"], active: new Set(["Root","9th","M3rd","4th(11th)","5th","6th(13th)","M7th"]) },
       finger: { all: ["人差し指","中指","薬指","小指"], active: new Set(["人差し指","中指","薬指","小指"]) },
@@ -341,25 +477,56 @@
     const historyList = document.getElementById("historyList");
     const emptyHistory = document.getElementById("emptyHistory");
 
+    const scalePresets = {
+      ionian:        ["Root","9th","M3rd","4th(11th)","5th","6th(13th)","M7th"],
+      dorian:        ["Root","9th","m3rd(#9th)","4th(11th)","5th","6th(13th)","m7th"],
+      phrygian:      ["Root","♭9th","m3rd(#9th)","4th(11th)","5th","♭13th(#5th)","m7th"],
+      lydian:        ["Root","9th","M3rd","#11th(♭5)","5th","6th(13th)","M7th"],
+      mixolydian:    ["Root","9th","M3rd","4th(11th)","5th","6th(13th)","m7th"],
+      aeolian:       ["Root","9th","m3rd(#9th)","4th(11th)","5th","♭13th(#5th)","m7th"],
+      locrian:       ["Root","♭9th","m3rd(#9th)","4th(11th)","#11th(♭5)","♭13th(#5th)","m7th"],
+      majorPenta:    ["Root","9th","M3rd","5th","6th(13th)"],
+      minorPenta:    ["Root","m3rd(#9th)","4th(11th)","5th","m7th"],
+      harmonicMinor: ["Root","9th","m3rd(#9th)","4th(11th)","5th","♭13th(#5th)","M7th"],
+      melodicMinor:  ["Root","9th","m3rd(#9th)","4th(11th)","5th","6th(13th)","M7th"],
+      altered:        ["Root","♭9th","m3rd(#9th)","M3rd","#11th(♭5)","♭13th(#5th)","m7th"],
+      wholeTone:     ["Root","9th","M3rd","#11th(♭5)","♭13th(#5th)","m7th"],
+      comboDimi:     ["Root","♭9th","m3rd(#9th)","M3rd","#11th(♭5)","5th","6th(13th)","m7th"],
+      diminished:    ["Root","♭9th","m3rd(#9th)","M3rd","#11th(♭5)","5th","♭13th(#5th)","M7th"],
+      lydianb7:      ["Root","9th","M3rd","#11th(♭5)","5th","6th(13th)","m7th"],
+      chromatic:     ["Root","♭9th","9th","m3rd(#9th)","M3rd","4th(11th)","#11th(♭5)","5th","♭13th(#5th)","6th(13th)","m7th","M7th"],
+    };
+
+    function applyScalePreset(key) {
+      if (!key) return;
+      const preset = new Set(scalePresets[key]);
+      groups.degree.active = new Set(preset);
+      document.querySelectorAll("#degreeGrid input[type=checkbox]").forEach(cb => {
+        cb.checked = preset.has(cb.dataset.item);
+      });
+    }
+
     function buildToggles() {
-      Object.entries(groups).forEach(([key, g]) => {
-        const container = document.getElementById(key + "Toggle");
+      ["scale", "string", "degree", "finger"].forEach(key => {
+        const grid = document.getElementById(key + "Grid");
+        const g = groups[key];
         g.all.forEach(item => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.textContent = item;
-          if (g.active.has(item)) btn.classList.add("active");
-          btn.addEventListener("click", () => {
-            if (g.active.has(item)) {
-              if (g.active.size === 1) return;
-              g.active.delete(item);
-              btn.classList.remove("active");
-            } else {
-              g.active.add(item);
-              btn.classList.add("active");
-            }
+          const cell = document.createElement("div");
+          cell.className = "degree-grid-cell";
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.checked = g.active.has(item);
+          cb.dataset.item = item;
+          cb.addEventListener("change", () => {
+            if (!cb.checked && g.active.size === 1) { cb.checked = true; return; }
+            cb.checked ? g.active.add(item) : g.active.delete(item);
+            if (key === "degree") document.getElementById("scalePreset").value = "";
           });
-          container.appendChild(btn);
+          const label = document.createElement("span");
+          label.innerHTML = item.replace("(", "<br>(");
+          cell.appendChild(cb);
+          cell.appendChild(label);
+          grid.appendChild(cell);
         });
       });
     }
@@ -405,7 +572,22 @@
     function addHistory(result, elapsed) {
       emptyHistory.style.display = "none";
       const li = document.createElement("li");
-      li.textContent = `${result.scale} / ${result.string} / ${result.degree} / ${result.finger}  [${elapsed}]`;
+      const items = [
+        { label: "ルート", value: result.scale },
+        { label: "弦",     value: result.string },
+        { label: "度数",   value: result.degree },
+        { label: "指",     value: result.finger },
+      ];
+      items.forEach(({ label, value }) => {
+        const el = document.createElement("div");
+        el.className = "history-item";
+        el.innerHTML = `<span class="history-item-label">${label}</span><span class="history-item-value">${value}</span>`;
+        li.appendChild(el);
+      });
+      const time = document.createElement("span");
+      time.className = "history-time";
+      time.textContent = elapsed;
+      li.appendChild(time);
       historyList.prepend(li);
       while (historyList.children.length > 10) {
         historyList.removeChild(historyList.lastChild);
